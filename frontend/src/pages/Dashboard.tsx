@@ -37,19 +37,40 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Platform Overview</h1>
-        <p className="text-slate-500 mt-1">Real-time agricultural insurance metrics and risk exposure.</p>
+        <h1 className="text-2xl font-bold text-slate-900">PMFBY Risk Intelligence Dashboard</h1>
+        <p className="text-slate-500 mt-1">El Niño-aware agricultural risk assessment for insurers and government scheme administrators.</p>
       </div>
+
+      {/* PMFBY Context Banner */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl p-5 flex items-start justify-between">
+        <div>
+          <p className="font-bold text-lg">Pradhan Mantri Fasal Bima Yojana (PMFBY) Risk Engine</p>
+          <p className="text-blue-100 text-sm mt-1 max-w-xl">
+            This platform helps empaneled insurers and state agriculture departments price risk accurately under El Niño weather anomalies —
+            ensuring PMFBY claims are assessed fairly and settled faster for enrolled farmers.
+          </p>
+        </div>
+        <div className="ml-4 flex-shrink-0 bg-white/20 rounded-lg px-4 py-2 text-center">
+          <p className="text-xs text-blue-100">Farmer Premium</p>
+          <p className="text-2xl font-bold">1.5–2%</p>
+          <p className="text-xs text-blue-100">Govt pays rest</p>
+        </div>
+      </div>
+
+      {/* Key Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Farmers" value={stats?.total_farmers || 0} icon={Users} color="text-blue-600" bg="bg-blue-100" />
-        <StatCard title="Active Policies" value={stats?.total_policies || 0} icon={Shield} color="text-indigo-600" bg="bg-indigo-100" />
-        <StatCard title="Total Claims" value={stats?.total_claims || 0} icon={FileText} color="text-rose-600" bg="bg-rose-100" />
+        <StatCard title="Policies Assessed" value={stats?.total_policies || 0} icon={Shield} color="text-indigo-600" bg="bg-indigo-100" />
+        <StatCard title="Total Claims Filed" value={stats?.total_claims || 0} icon={FileText} color="text-rose-600" bg="bg-rose-100" />
         <StatCard title="Claim Rate" value={`${stats?.claim_rate_percentage || 0}%`} icon={Activity} color="text-amber-600" bg="bg-amber-100" />
+        <StatCard title="Enrolled Farmers" value={stats?.total_farmers || 0} icon={Users} color="text-blue-600" bg="bg-blue-100" />
       </div>
+
+      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Claims Over Time</h3>
-          <div className="h-64">
+          <h3 className="text-lg font-semibold text-slate-800 mb-1">Claims Over Time</h3>
+          <p className="text-xs text-slate-500 mb-4">Monthly claim volume — used by insurers to assess reserve adequacy</p>
+          <div className="h-56">
             {claimsOverTime.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={claimsOverTime}>
@@ -60,12 +81,13 @@ export default function Dashboard() {
                   <Line type="monotone" dataKey="claims" stroke="#3B82F6" strokeWidth={3} dot={{r: 4}} />
                 </LineChart>
               </ResponsiveContainer>
-            ) : <EmptyState message="No claims data available." />}
+            ) : <EmptyState message="No claims data. Upload CSV data to begin." />}
           </div>
         </div>
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Portfolio Survival Probability</h3>
-          <div className="h-64">
+          <h3 className="text-lg font-semibold text-slate-800 mb-1">Portfolio Survival Probability</h3>
+          <p className="text-xs text-slate-500 mb-4">Cox PH model baseline — probability of no claim over time across portfolio</p>
+          <div className="h-56">
             {!isModelLoaded ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-500 bg-slate-50 rounded-lg">
                 <AlertTriangle className="w-12 h-12 mb-3 text-amber-500 opacity-80" />
@@ -88,9 +110,28 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Who Uses This Platform */}
+      <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <h3 className="text-base font-semibold text-slate-800 mb-4">Who Uses This Platform</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { icon: Shield, title: "Insurance Companies", desc: "AIC, Bajaj Allianz, HDFC ERGO — use risk scores for premium pricing and reserve allocation under PMFBY.", color: "text-indigo-600", bg: "bg-indigo-50 border-indigo-100" },
+            { icon: Users, title: "State Agri Departments", desc: "Track district-level ENSO risk exposure, flag high-risk zones, and plan early intervention before crop failure.", color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
+            { icon: Activity, title: "Agricultural Banks", desc: "Kisan Credit Card (KCC) lenders assess collateral risk before extending crop loans in drought-prone districts.", color: "text-green-600", bg: "bg-green-50 border-green-100" },
+          ].map(({ icon: Icon, title, desc, color, bg }) => (
+            <div key={title} className={`p-4 rounded-xl border ${bg}`}>
+              <Icon className={`w-5 h-5 ${color} mb-2`} />
+              <p className="font-semibold text-slate-800 text-sm">{title}</p>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
+
 
 function StatCard({ title, value, icon: Icon, color, bg }: any) {
   return (

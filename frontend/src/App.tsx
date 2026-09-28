@@ -13,6 +13,7 @@ import Policies from './pages/Policies';
 import Claims from './pages/Claims';
 import Weather from './pages/Weather';
 import ResearchMethodology from './pages/ResearchMethodology';
+import FarmerAdvisory from './pages/FarmerAdvisory';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/claims" element={<Claims />} />
           <Route path="/weather" element={<Weather />} />
           <Route path="/methodology" element={<ResearchMethodology />} />
+          <Route path="/farmer-advisory" element={<FarmerAdvisory />} />
         </Route>
       </Routes>
     </Router>

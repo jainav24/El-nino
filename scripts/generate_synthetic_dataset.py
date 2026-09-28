@@ -1,12 +1,15 @@
 import pandas as pd
 import numpy as np
 import os
+import sys
 import argparse
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 import warnings
 warnings.filterwarnings('ignore')
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def set_seed(seed=42):
     np.random.seed(seed)
@@ -69,14 +72,11 @@ def generate_synthetic_data(num_rows):
     data['elnino_intensity'] = intensity
     
     # 4. Weather Features
-    # Normal rainfall depends on season and region (approximate)
     base_rain = np.where(data['crop_season'] == 'Kharif', 800, 
                  np.where(data['crop_season'] == 'Rabi', 150, 100))
     data['normal_rainfall'] = np.random.normal(base_rain, base_rain*0.1)
     
-    # El Niño impacts rainfall differently: typically reduces rainfall in Kharif, sometimes increases in Rabi
     rain_modifier = np.ones(num_rows)
-    # Drought effect from El Nino
     mask_strong = np.array(data['elnino_intensity']) == 'Strong El Niño'
     mask_moderate = np.array(data['elnino_intensity']) == 'Moderate El Niño'
     mask_lanina = np.array(data['elnino_intensity']) == 'La Niña'
@@ -88,7 +88,6 @@ def generate_synthetic_data(num_rows):
     data['rainfall'] = np.round(data['normal_rainfall'] * rain_modifier, 1)
     data['rainfall_deviation'] = np.round(data['rainfall'] - data['normal_rainfall'], 1)
     
-    # Temperature (El Nino generally means warmer)
     base_temp = 28.0
     temp_modifier = np.zeros(num_rows)
     temp_modifier[mask_strong] = np.random.normal(2.5, 0.5, mask_strong.sum())
@@ -101,7 +100,6 @@ def generate_synthetic_data(num_rows):
     # Derived Indices
     data['humidity'] = np.clip(np.random.normal(65, 15, num_rows) + (data['rainfall_deviation']*0.05), 10, 100)
     
-    # Soil moisture drops heavily with negative rainfall deviation and high temp, offset by irrigation
     irrigation_bonus = np.where(data['irrigation_type'] == 'Canal', 0.3,
                                 np.where(data['irrigation_type'] == 'Tube Well', 0.2,
                                          np.where(data['irrigation_type'] == 'Drip', 0.4, 0.0)))
@@ -134,7 +132,6 @@ def generate_synthetic_data(num_rows):
     max_duration = np.where(df['crop_season'] == 'Kharif', 150,
                             np.where(df['crop_season'] == 'Rabi', 120, 90))
                             
-    # Hazard connects weather anomalies, poor irrigation, past claims to failure risk
     hazard = (
         df['drought_index'] * 3.5 +
         df['flood_index'] * 2.5 +
@@ -142,33 +139,27 @@ def generate_synthetic_data(num_rows):
         df['previous_claims'] * 0.5 +
         df['temperature_deviation'] * 0.2
     )
-    # Exponentiate to get lambda for exponential distribution
     hazard_rate = np.exp((hazard - hazard.mean()) / hazard.std()) / 120.0
     
     simulated_time = np.random.exponential(1.0 / hazard_rate)
     
-    # time_to_claim (duration)
     df['time_to_claim'] = np.round(np.minimum(simulated_time, max_duration), 0)
-    # claim_occurred (event)
     df['claim_occurred'] = (simulated_time <= max_duration).astype(int)
     
     return df
 
 def simulate_real_world_issues(df):
     """Introduces missing values, outliers, and duplicates to simulate dirty data."""
-    # 1. Missing Values
     print("Introducing missing values...")
     cols_to_null = ['soil_moisture', 'humidity', 'temperature']
     for col in cols_to_null:
         mask = np.random.rand(len(df)) < 0.05
         df.loc[mask, col] = np.nan
         
-    # 2. Outliers (Extreme unrealistic temperatures due to sensor errors)
     print("Introducing outliers...")
     outlier_idx = np.random.choice(df.index, size=50, replace=False)
     df.loc[outlier_idx, 'temperature'] = np.random.uniform(60, 100, 50)
     
-    # 3. Duplicates
     print("Introducing duplicates...")
     duplicates = df.sample(n=100, random_state=42)
     df = pd.concat([df, duplicates], ignore_index=True)
@@ -179,29 +170,24 @@ def validate_and_clean_data(df):
     """Pipeline for cleaning and validating the data."""
     print("\n--- Data Validation & Cleaning ---")
     
-    # 1. Duplicate Detection
     duplicates = df.duplicated().sum()
     print(f"Duplicates found: {duplicates}")
     if duplicates > 0:
         df = df.drop_duplicates()
         
-    # 2. Missing Value Handling
     missing_before = df.isnull().sum().sum()
     for col in df.columns:
         if df[col].isnull().any():
             df[col] = df[col].fillna(df[col].median())
     print(f"Missing values imputed: {missing_before}")
     
-    # 3. Outlier Detection
     Q1 = df['temperature'].quantile(0.25)
     Q3 = df['temperature'].quantile(0.75)
     IQR = Q3 - Q1
     outliers_temp = df[(df['temperature'] < (Q1 - 1.5 * IQR)) | (df['temperature'] > (Q3 + 1.5 * IQR))]
     print(f"Outliers detected in temperature (IQR method): {len(outliers_temp)}")
-    # Cap extreme temperatures to reasonable max (e.g. 50C)
     df['temperature'] = np.where(df['temperature'] > 55.0, 55.0, df['temperature'])
     
-    # 4. Data Type Validation
     df['time_to_claim'] = df['time_to_claim'].astype(int)
     df['claim_occurred'] = df['claim_occurred'].astype(int)
     df['claim_count'] = df['claim_count'].astype(int)
@@ -216,65 +202,58 @@ def generate_visualizations(df, output_dir):
     
     sns.set_theme(style="whitegrid")
     
-    # 1. Claim Distribution
     plt.figure(figsize=(6, 4))
     sns.countplot(data=df, x='claim_occurred', palette='Set2')
     plt.title('Distribution of Claims Occurred')
-    plt.savefig(f'{output_dir}/1_claim_distribution.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, '1_claim_distribution.png'), bbox_inches='tight')
     plt.close()
     
-    # 2. Crop Distribution
     plt.figure(figsize=(8, 5))
     sns.countplot(data=df, y='crop_type', order=df['crop_type'].value_counts().index, palette='viridis')
     plt.title('Distribution of Crop Types')
-    plt.savefig(f'{output_dir}/2_crop_distribution.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, '2_crop_distribution.png'), bbox_inches='tight')
     plt.close()
     
-    # 3. Rainfall Distribution
     plt.figure(figsize=(8, 5))
     sns.histplot(data=df, x='rainfall', hue='elnino_status', bins=30, kde=True)
     plt.title('Rainfall Distribution by El Niño Status')
-    plt.savefig(f'{output_dir}/3_rainfall_distribution.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, '3_rainfall_distribution.png'), bbox_inches='tight')
     plt.close()
     
-    # 4. Temperature Distribution
     plt.figure(figsize=(8, 5))
     sns.histplot(data=df, x='temperature', hue='elnino_status', bins=30, kde=True)
     plt.title('Temperature Distribution by El Niño Status')
-    plt.savefig(f'{output_dir}/4_temperature_distribution.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, '4_temperature_distribution.png'), bbox_inches='tight')
     plt.close()
     
-    # 5. El Niño Distribution
     plt.figure(figsize=(8, 5))
     sns.countplot(data=df, x='elnino_intensity', order=['Strong El Niño', 'Moderate El Niño', 'Weak El Niño', 'None', 'La Niña'], palette='coolwarm_r')
     plt.title('Distribution of El Niño Intensities')
-    plt.savefig(f'{output_dir}/5_elnino_distribution.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, '5_elnino_distribution.png'), bbox_inches='tight')
     plt.close()
     
-    # 6. Risk Factors (Correlation)
     plt.figure(figsize=(10, 8))
     cols_corr = ['drought_index', 'flood_index', 'temperature_deviation', 'soil_moisture', 'weather_anomaly_score', 'claim_occurred']
     sns.heatmap(df[cols_corr].corr(), annot=True, cmap='RdYlGn_r', fmt=".2f")
     plt.title('Correlation Matrix of Risk Factors')
-    plt.savefig(f'{output_dir}/6_risk_factors_corr.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, '6_risk_factors_corr.png'), bbox_inches='tight')
     plt.close()
     
-    # 7. Time-to-Claim Distribution
     plt.figure(figsize=(8, 5))
     sns.histplot(data=df[df['claim_occurred'] == 1], x='time_to_claim', bins=30, kde=True, color='indianred')
     plt.title('Time to Claim Distribution (For Claimed Policies)')
-    plt.savefig(f'{output_dir}/7_time_to_claim_dist.png', bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, '7_time_to_claim_dist.png'), bbox_inches='tight')
     plt.close()
 
 def export_and_split(df, output_dir):
     """Splits into train/test and exports CSVs."""
     os.makedirs(output_dir, exist_ok=True)
     
-    df.to_csv(f'{output_dir}/full_dataset.csv', index=False)
+    df.to_csv(os.path.join(output_dir, 'full_dataset.csv'), index=False)
     
     train, test = train_test_split(df, test_size=0.2, random_state=42, stratify=df['claim_occurred'])
-    train.to_csv(f'{output_dir}/train_dataset.csv', index=False)
-    test.to_csv(f'{output_dir}/test_dataset.csv', index=False)
+    train.to_csv(os.path.join(output_dir, 'train_dataset.csv'), index=False)
+    test.to_csv(os.path.join(output_dir, 'test_dataset.csv'), index=False)
     
     print(f"\n--- Data Exported ---")
     print(f"Full dataset saved: {len(df)} rows")
@@ -283,7 +262,7 @@ def export_and_split(df, output_dir):
 
 def generate_report(df, output_dir):
     """Generates a text report explaining variables and limitations."""
-    report_path = f"{output_dir}/dataset_summary_report.txt"
+    report_path = os.path.join(output_dir, 'dataset_summary_report.txt')
     with open(report_path, 'w', encoding='utf-8') as f:
         f.write("=========================================================\n")
         f.write(" AI-Driven Risk Assessment Model - Dataset Summary Report\n")
@@ -320,20 +299,16 @@ if __name__ == "__main__":
     df_raw = generate_synthetic_data(args.rows)
     df_dirty = simulate_real_world_issues(df_raw)
     
-    # Save raw dataset
-    raw_dir = "data/raw"
-    processed_dir = "data/processed"
+    raw_dir = os.path.join(PROJECT_ROOT, "data", "raw")
+    processed_dir = os.path.join(PROJECT_ROOT, "data", "processed")
     os.makedirs(raw_dir, exist_ok=True)
     os.makedirs(processed_dir, exist_ok=True)
     
-    raw_path = f"{raw_dir}/raw_unclean_dataset.csv"
+    raw_path = os.path.join(raw_dir, "raw_unclean_dataset.csv")
     df_dirty.to_csv(raw_path, index=False)
     print(f"Raw dirty dataset saved to {raw_path}")
     
-    # Clean and validate
     df_clean = validate_and_clean_data(df_dirty)
-    
-    # Save processed, splits and reports
     export_and_split(df_clean, processed_dir)
     generate_visualizations(df_clean, processed_dir)
     generate_report(df_clean, processed_dir)

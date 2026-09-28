@@ -47,6 +47,13 @@ export const dataApi = {
   seedDemo: () => api.post('/data/seed').then((res) => res.data),
 };
 
+export const advisoryApi = {
+  getAdvisory: (state: string, crop: string, season: string) =>
+    api.get('/advisory', { params: { state, crop, season } }).then((res) => res.data),
+  getEnsoStatus: () => api.get('/advisory/enso-status').then((res) => res.data),
+  getSupportedStates: () => api.get('/advisory/states').then((res) => res.data),
+};
+
 export const coreApi = {
   getFarmers: () => api.get('/farmers').then((res) => res.data),
   getPolicies: () => api.get('/policies').then((res) => res.data),

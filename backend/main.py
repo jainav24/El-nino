@@ -13,6 +13,7 @@ from backend.api.core_routes import router as core_router
 from backend.api.ml_routes import router as ml_router
 from backend.api.dashboard import router as dashboard_router
 from backend.api.chat import router as chat_router
+from backend.api.advisory import router as advisory_router
 
 logger = get_logger(__name__)
 
@@ -73,3 +74,4 @@ app.include_router(ml_router, prefix="/api/survival", tags=["Survival Analysis A
 app.include_router(ml_router, prefix="/api/risk", tags=["Risk Engine API"])
 app.include_router(dashboard_router, prefix="/api", tags=["Dashboard Analytics"])
 app.include_router(chat_router, prefix="/api", tags=["AI Chat Assistant"])
+app.include_router(advisory_router, prefix="/api", tags=["Farmer Advisory (Public)"])

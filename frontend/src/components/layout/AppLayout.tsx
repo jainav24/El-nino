@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, Shield, FileText, CloudRain, Activity, Brain, Settings, Database, Server } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, FileText, CloudRain, Activity, Brain, Database, Server, Leaf } from 'lucide-react';
 import FloatingAssistant from '../FloatingAssistant';
 
 export default function AppLayout() {
@@ -9,7 +9,7 @@ export default function AppLayout() {
       <aside className="w-64 bg-slate-900 text-white flex flex-col">
         <div className="p-6 border-b border-slate-800">
           <h1 className="text-xl font-bold tracking-tight text-blue-400">AgriRisk AI</h1>
-          <p className="text-xs text-slate-400 mt-1">El Niño Survival Engine</p>
+          <p className="text-xs text-slate-400 mt-1">PMFBY Risk Intelligence Platform</p>
         </div>
         <nav className="flex-1 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700">
           <div className="space-y-6">
@@ -45,6 +45,13 @@ export default function AppLayout() {
                 <li><NavLink to="/model-training" className={({ isActive }) => `flex items-center px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive ? 'bg-blue-600/20 text-blue-400 font-medium' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}><Server className="w-5 h-5 mr-3" /> Model Training</NavLink></li>
               </ul>
             </div>
+            {/* Public Tools */}
+            <div>
+              <p className="px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Public Tools</p>
+              <ul className="space-y-1 px-3">
+                <li><NavLink to="/farmer-advisory" className={({ isActive }) => `flex items-center px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive ? 'bg-green-600/20 text-green-400 font-medium' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}><Leaf className="w-5 h-5 mr-3" /> Farmer Advisory</NavLink></li>
+              </ul>
+            </div>
             
             <div className="px-6 pt-4 pb-2">
               <p className="text-[10px] text-slate-500 leading-tight">
@@ -59,6 +66,7 @@ export default function AppLayout() {
           <div className="flex items-center space-x-4">
             <h2 className="text-lg font-semibold text-slate-800">Platform</h2>
             <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-300">DEMO DATA</span>
+            <span className="bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-orange-200">🌡️ El Niño Active</span>
           </div>
           <div className="flex items-center space-x-4">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">A</div>

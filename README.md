@@ -28,28 +28,39 @@ AgriRisk AI is a full-stack intelligent platform designed to dynamically evaluat
 
 ```text
 .
-├── backend/            # FastAPI application
-│   ├── api/            # API endpoints (routes, auth, chat, ml)
-│   ├── core/           # Core configurations
-│   ├── data/           # Data processing and seed data
-│   ├── database/       # SQLAlchemy models and connection
+├── backend/            # FastAPI application & server runtime
+│   ├── api/            # API endpoints (advisory, auth, chat, core, dashboard, data, ml)
+│   ├── core/           # Security, authentication, and core helpers
+│   ├── database/       # SQLAlchemy models, schema, and connection
+│   ├── ml/             # Production CoxPH survival engine and risk models
 │   ├── schemas/        # Pydantic validation schemas
-│   ├── services/       # Business logic and ML inference wrappers
+│   ├── services/       # Retrain, inference, and data services
+│   ├── utils/          # Logging and exception handlers
 │   └── main.py         # Application entry point
-├── frontend/           # React frontend
+├── data/               # Project datasets
+│   ├── processed/      # Train/test splits, EDA charts, and reports
+│   └── raw/            # Raw simulated and historical claim data
+├── docs/               # Architecture, academic research, and viva guides
+├── frontend/           # React 19 (TypeScript + Vite) frontend
 │   ├── src/
-│   │   ├── components/ # Reusable UI components
-│   │   ├── pages/      # Application pages (Dashboard, Risk, Analysis, etc.)
-│   │   ├── services/   # API client services
-│   │   └── App.tsx     # Main routing component
+│   │   ├── components/ # Reusable UI components & layouts
+│   │   ├── pages/      # Pages (Dashboard, Farmer Advisory, Risk, etc.)
+│   │   ├── services/   # Frontend API client
+│   │   └── App.tsx     # Application router
 │   └── package.json    # Frontend dependencies
-├── ml/                 # Machine learning pipeline
-│   ├── feature_engineering.py
-│   ├── preprocessing.py
-│   ├── survival_dataset.py
-│   ├── prediction/     # Inference engine
-│   └── training/       # Model training logic
-├── docker-compose.yml  # Docker compose configuration
+├── ml/                 # Offline ML research & training pipeline
+│   ├── evaluation/     # Metrics, C-Index, and model assessment
+│   ├── prediction/     # Offline survival predictions
+│   └── training/       # Cox model & Kaplan-Meier training scripts
+├── scripts/            # Standalone utility & maintenance scripts
+│   ├── samples/        # Sample API request payloads
+│   ├── generate_synthetic_dataset.py # 10k dataset generator with EDA
+│   ├── manual_api_test.py # Smoke test runner
+│   ├── reset_db.py     # Database schema initializer
+│   └── retrain.py      # Background retrain trigger
+├── tests/              # Test suite (backend, ML pipelines, datasets)
+├── alembic.ini         # Database migration configuration
+├── docker-compose.yml  # Containerized deployment config
 ├── Dockerfile          # Backend Dockerfile
 └── requirements.txt    # Python dependencies
 ```
