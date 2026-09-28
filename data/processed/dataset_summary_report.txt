@@ -1,0 +1,31 @@
+=========================================================
+ AI-Driven Risk Assessment Model - Dataset Summary Report
+=========================================================
+
+Total Records Generated: 10000
+Overall Claim Rate: 63.51%
+
+=== Target Variables for Survival Analysis ===
+1. duration (`time_to_claim`): The number of days from the start of the crop season until a claim is filed. If no claim is filed, it is the total duration of the crop season.
+2. event (`claim_occurred`): Binary indicator (1 if a claim was filed, 0 if the policy ended without a claim, representing right-censored data).
+   - Construction: We compute a hazard rate combining drought severity, flood severity, poor irrigation, and temperature deviations. Using this hazard rate, an exponential distribution simulates 'time_to_failure'. If this time is less than the crop season's maximum duration, an event (claim) occurs.
+
+=== Feature Engineering Context ===
+Variables like `rainfall_deviation`, `drought_index`, and `weather_anomaly_score` are included to establish ground-truth causal relationships in this synthetic environment. In the ML pipeline, these will be treated as derived features from the raw telemetry (rainfall, temperature).
+
+=== Summary Statistics of Key Variables ===
+           rainfall   temperature  drought_index  time_to_claim
+count  10000.000000  10000.000000   10000.000000   10000.000000
+mean     511.173590     28.567700       0.400089      77.172200
+std      353.027243      2.432903       0.237318      53.014721
+min       33.400000     23.600000       0.000000       0.000000
+25%      145.600000     27.400000       0.215117      25.000000
+50%      516.150000     28.300000       0.404790      77.000000
+75%      813.400000     29.400000       0.544985     120.000000
+max     1549.200000     55.000000       0.950000     150.000000
+
+=== Synthetic Data Limitations (For Academic Disclosure) ===
+To ensure academic integrity, the following limitations must be disclosed in the project report:
+1. Synthetic Causality: The relationships between El Niño, weather anomalies, and crop failure are heuristically programmed via a defined hazard function, rather than empirically derived from true historical actuarial loss tables.
+2. Lack of Micro-climates: Weather features are modeled at a generalized distribution level without complex spatial auto-correlation (e.g., adjacent farms experiencing identical local floods).
+3. Temporal Independence: Each row acts as an independent policy without longitudinal farmer history, missing the true year-over-year temporal dynamics of agricultural risk.

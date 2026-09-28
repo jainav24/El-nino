@@ -1,0 +1,24 @@
+=========================================================
+ Survival Analysis Model Evaluation (CPH)
+=========================================================
+
+Baseline Model C-Index (Without El Niño): 0.7287
+Proposed Model C-Index (With El Niño):    0.7331
+
+--- Hypothesis Validation ---
+Result: The integration of El Niño and interaction features successfully improved the predictive power of the model.
+
+
+--- Top 10 Most Significant Hazard Ratios ---
+                             coef  exp(coef)             p  se(coef)
+covariate                                                           
+previous_claims          0.149819   1.161624  1.384229e-40  0.011232
+irrigation_type_Rainfed  0.620233   1.859361  1.067602e-33  0.051263
+irrigation_type_Drip    -0.325688   0.722030  7.033203e-13  0.045368
+enso_index               0.297573   1.346587  2.976204e-10  0.047234
+extreme_weather_events   0.117348   1.124510  5.242113e-07  0.023389
+region_x_elnino          0.041496   1.042369  3.672008e-02  0.019865
+weather_anomaly_score    0.109896   1.116161  3.989099e-02  0.053480
+crop_season_Zaid        -0.064524   0.937514  5.664758e-02  0.033853
+insurance_amount        -0.056380   0.945180  6.561346e-02  0.030624
+soil_type_Loamy          0.058906   1.060676  9.109002e-02  0.034863

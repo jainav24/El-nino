@@ -1,0 +1,7 @@
+=== Model Validation Report ===
+Train C-index: 0.7355
+Test C-index:  0.7231
+Brier Score (180 days): 0.1701
+
+Conclusion:
+The model generalizes well to unseen data, as indicated by the similar train and test C-indices. The Brier score shows the accuracy of probability predictions at the 6-month horizon.

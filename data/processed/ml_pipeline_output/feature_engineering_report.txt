@@ -1,0 +1,36 @@
+=========================================================
+ AI-Driven Risk Assessment Model - Feature Engineering   
+=========================================================
+
+=== DATA LEAKAGE PREVENTION ===
+In building this pipeline, several variables were strictly removed to prevent data leakage. Data leakage occurs when a model uses information during training that would not be available at the time of prediction.
+- Excluded Variables:
+  * `current_yield`: Yield is only known at the end of the crop season, during harvest. Using it to predict an in-season claim would allow the model to 'look into the future'.
+  * `policy_id`, `farmer_id`: Unique identifiers do not carry predictive value and can lead to overfitting.
+Only baseline geographical, historical, and rolling weather features are preserved.
+
+=== MODULE 1: WEATHER FEATURES ===
+These features quantify the deviations from normal agricultural conditions.
+- `derived_rainfall_deviation`: Absolute difference between observed and normal rainfall.
+- `precipitation_anomaly_pct`: Percentage deviation of rainfall from the norm.
+- `derived_temperature_anomaly`: Deviation of temperature from a baseline 28°C.
+- `drought_severity`: A normalized 0-1 index combining soil moisture deficit and temperature stress.
+- `flood_severity`: A normalized 0-1 index tracking extreme positive rainfall deviation.
+- `extreme_temperature_indicator`: Binary flag indicating temperature anomaly > 2.5°C.
+- `consecutive_dry_days_proxy`: Simulated count of rainless days derived from drought severity.
+
+=== MODULE 2: EL NIÑO FEATURES ===
+These features translate the physical ENSO (El Niño-Southern Oscillation) index into categorical and intensity representations.
+- `derived_enso_category`: Maps ENSO index to Strong/Moderate/Weak El Niño, Neutral, or La Niña.
+- `el_nino_indicator`: Binary flag for positive El Niño status.
+- `duration_of_episode_months`: Simulates the prolonged effect of the climate event.
+
+=== MODULE 3: INTERACTION FEATURES ===
+Agriculture is a complex system where risks compound. Multiplicative terms capture these non-linear effects.
+- `elnino_x_rainfall_dev`: Captures the amplified effect of rainfall deficits specifically during El Niño years.
+- `irrigation_x_drought`: Highlights vulnerability (Rainfed farms suffer more during droughts than Irrigated ones).
+- `crop_x_rainfall_dev`: Represents specific crop sensitivities to precipitation changes.
+
+=== MODULE 4: WEATHER RISK SCORE ===
+A transparent heuristic score ranging from 0 to 100. This is not used as a machine learning feature, but rather as an interpretable dashboard metric for insurance underwriters.
+- `preliminary_weather_risk_score`: Weighted sum of drought severity (40%), flood severity (30%), extreme temp (15%), and El Niño intensity (15%).
